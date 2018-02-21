@@ -1,0 +1,613 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "VnetHubNorthEuropeName": {
+            "defaultValue": "P-NE-VNET-HUB-1",
+            "type": "String"
+        },
+        "VnetHubWesthEuropeName": {
+            "defaultValue": "P-WE-VNET-HUB-1",
+            "type": "String"
+        },
+        "VnetHubWestUsName": {
+            "defaultValue": "P-WUS-VNET-HUB-1",
+            "type": "String"
+        },
+        "VnetHubEastUsName": {
+            "defaultValue": "P-EUS-VNET-HUB-1",
+            "type": "String"
+        },
+
+        "VpnGatewayNorthEuropeName": {
+            "defaultValue": "P-NE-VPNGW-HUB-1",
+            "type": "String"
+        },
+        "VpnGatewayWestEuropeName": {
+            "defaultValue": "P-WE-VPNGW-HUB-1",
+            "type": "String"
+        },
+        "VpnGatewayWestUsName": {
+            "defaultValue": "P-WUS-VPNGW-HUB-1",
+            "type": "String"
+        },
+        "VpnGatewayEastUsName": {
+            "defaultValue": "P-EUS-VPNGW-HUB-1",
+            "type": "String"
+		},
+		"SharedKey": {
+			"type": "string"
+		}
+    },
+    "variables": {
+		"PublicIpVpnGatewayNorthEuropeName" : "[concat(parameters('VpnGatewayNorthEuropeName'), '-PIP')]",
+		"PublicIpVpnGatewayWestEuropeName" : "[concat(parameters('VpnGatewayWestEuropeName'), '-PIP')]",
+		"PublicIpVpnGatewayEastUsName" : "[concat(parameters('VpnGatewayWestUsName'), '-PIP')]",
+		"PublicIpVpnGatewayWestUsName" : "[concat(parameters('VpnGatewayEastUsName'), '-PIP')]",
+		"DefaultSubnetName" : "default",
+		"GatewaySubnetName": "GatewaySubnet"
+	},
+    "resources": [
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "sku": {
+                "name": "Basic"
+            },
+            "name": "[variables('PublicIpVpnGatewayWestUsName')]",
+            "apiVersion": "2017-10-01", 
+            "location": "westus",
+            "scale": null,
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "sku": {
+                "name": "Basic"
+            },
+            "name": "[variables('PublicIpVpnGatewayEastUsName')]",
+            "apiVersion": "2017-10-01",
+            "location": "eastus",
+            "scale": null,
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "sku": {
+                "name": "Basic"
+            },
+            "name": "[variables('PublicIpVpnGatewayNorthEuropeName')]",
+            "apiVersion": "2017-10-01",
+            "location": "northeurope",
+            "scale": null,
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "sku": {
+                "name": "Basic"
+            },
+            "name": "[variables('PublicIpVpnGatewayWestEuropeName')]",
+            "apiVersion": "2017-10-01",
+            "location": "westeurope",
+            "scale": null,
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworkGateways",
+            "name": "[parameters('VpnGatewayWestUsName')]",
+            "apiVersion": "2017-10-01",
+            "location": "westus",
+            "scale": null,
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "default",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('PublicIpVpnGatewayWestUsName'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('VnetHubWestUsName'), variables('GatewaySubnetName'))]"
+                            }
+                        }
+                    }
+                ],
+                "sku": {
+                    "name": "VpnGw1",
+                    "tier": "VpnGw1",
+                    "capacity": 2
+                },
+                "gatewayType": "Vpn",
+                "vpnType": "RouteBased",
+                "enableBgp": false,
+                "activeActive": false,
+                "vpnClientConfiguration": {
+                    "vpnClientProtocols": [
+                        "SSTP",
+                        "IkeV2"
+                    ],
+                    "vpnClientRootCertificates": [],
+                    "vpnClientRevokedCertificates": []
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/', parameters('VnetHubWestUsName'))]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('PublicIpVpnGatewayWestUsName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworkGateways",
+            "name": "[parameters('VpnGatewayEastUsName')]",
+            "apiVersion": "2017-10-01",
+            "location": "eastus",
+            "scale": null,
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "default",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('PublicIpVpnGatewayEastUsName'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('VnetHubEastUsName'), variables('GatewaySubnetName'))]"
+                            }
+                        }
+                    }
+                ],
+                "sku": {
+                    "name": "VpnGw1",
+                    "tier": "VpnGw1",
+                    "capacity": 2
+                },
+                "gatewayType": "Vpn",
+                "vpnType": "RouteBased",
+                "enableBgp": false,
+                "activeActive": false,
+                "vpnClientConfiguration": {
+                    "vpnClientProtocols": [
+                        "SSTP",
+                        "IkeV2"
+                    ],
+                    "vpnClientRootCertificates": [],
+                    "vpnClientRevokedCertificates": []
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/', parameters('VnetHubEastUsName'))]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('PublicIpVpnGatewayEastUsName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworkGateways",
+            "name": "[parameters('VpnGatewayNorthEuropeName')]",
+            "apiVersion": "2017-10-01",
+            "location": "northeurope",
+            "scale": null,
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "default",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('PublicIpVpnGatewayNorthEuropeName'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('VnetHubNorthEuropeName'), variables('GatewaySubnetName'))]"
+                            }
+                        }
+                    }
+                ],
+                "sku": {
+                    "name": "VpnGw1",
+                    "tier": "VpnGw1",
+                    "capacity": 2
+                },
+                "gatewayType": "Vpn",
+                "vpnType": "RouteBased",
+                "enableBgp": false,
+                "activeActive": false,
+                "vpnClientConfiguration": {
+                    "vpnClientProtocols": [
+                        "SSTP",
+                        "IkeV2"
+                    ],
+                    "vpnClientRootCertificates": [],
+                    "vpnClientRevokedCertificates": []
+                },
+                "bgpSettings": {
+                    "asn": 65515,
+                    "bgpPeeringAddress": "10.2.0.14",
+                    "peerWeight": 0
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/', parameters('VnetHubNorthEuropeName'))]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('PublicIpVpnGatewayNorthEuropeName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworkGateways",
+            "name": "[parameters('VpnGatewayWestEuropeName')]",
+            "apiVersion": "2017-10-01",
+            "location": "westeurope",
+            "scale": null,
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "default",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('PublicIpVpnGatewayWestEuropeName'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('VnetHubWesthEuropeName'), variables('GatewaySubnetName'))]"
+                            }
+                        }
+                    }
+                ],
+                "sku": {
+                    "name": "VpnGw1",
+                    "tier": "VpnGw1",
+                    "capacity": 2
+                },
+                "gatewayType": "Vpn",
+                "vpnType": "RouteBased",
+                "enableBgp": false,
+                "activeActive": false,
+                "vpnClientConfiguration": {
+                    "vpnClientProtocols": [
+                        "SSTP",
+                        "IkeV2"
+                    ],
+                    "vpnClientRootCertificates": [],
+                    "vpnClientRevokedCertificates": []
+                },
+                "bgpSettings": {
+                    "asn": 65515,
+                    "bgpPeeringAddress": "10.1.0.14",
+                    "peerWeight": 0
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/', parameters('VnetHubWesthEuropeName'))]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('PublicIpVpnGatewayWestEuropeName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('VnetHubWestUsName')]",
+            "apiVersion": "2017-10-01",
+            "location": "westus",
+            "scale": null,
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.4.0.0/24"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('DefaultSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "10.4.0.128/25"
+                        }
+                    },
+                    {
+                        "name": "[variables('GatewaySubnetName')]",
+                        "properties": {
+                            "addressPrefix": "10.4.0.0/28"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('VnetHubEastUsName')]",
+            "apiVersion": "2017-10-01",
+            "location": "eastus",
+            "scale": null,
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.3.0.0/24"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('DefaultSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "10.3.0.128/25"
+                        }
+                    },
+                    {
+                        "name": "[variables('GatewaySubnetName')]",
+                        "properties": {
+                            "addressPrefix": "10.3.0.0/28"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('VnetHubNorthEuropeName')]",
+            "apiVersion": "2017-10-01",
+            "location": "northeurope",
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.2.0.0/24"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('DefaultSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "10.2.0.128/25"
+                        }
+                    },
+                    {
+                        "name": "[variables('GatewaySubnetName')]",
+                        "properties": {
+                            "addressPrefix": "10.2.0.0/28"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('VnetHubWesthEuropeName')]",
+            "apiVersion": "2017-10-01",
+            "location": "westeurope",
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.1.0.0/24"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('DefaultSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "10.1.0.128/25",
+                            "serviceEndpoints": []
+                        }
+                    },
+                    {
+                        "name": "[variables('GatewaySubnetName')]",
+                        "properties": {
+                            "addressPrefix": "10.1.0.0/28"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            },
+            "dependsOn": []
+		},
+        {
+            "type": "Microsoft.Network/connections",
+            "name": "Connection-WEU-NEU",
+            "apiVersion": "2017-10-01",
+            "location": "westeurope",
+            "scale": null,
+            "properties": {
+				"virtualNetworkGateway1": {
+					"id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestEuropeName'))]"
+				  },
+                "virtualNetworkGateway2": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayNorthEuropeName'))]"
+                },
+                "connectionType": "Vnet2Vnet",
+                "routingWeight": 0,
+                "enableBgp": false,
+                "usePolicyBasedTrafficSelectors": false,
+				"ipsecPolicies": [],
+				"sharedKey": "[parameters('sharedKey')]"
+            },
+            "dependsOn": [
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestEuropeName'))]",
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayNorthEuropeName'))]"
+			]
+		},
+		{
+            "type": "Microsoft.Network/connections",
+            "name": "Connection-NEU-WEU",
+            "apiVersion": "2017-10-01",
+            "location": "northeurope",
+            "scale": null,
+            "properties": {
+				"virtualNetworkGateway1": {
+					"id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayNorthEuropeName'))]"
+				  },
+                "virtualNetworkGateway2": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestEuropeName'))]"
+                },
+                "connectionType": "Vnet2Vnet",
+                "routingWeight": 0,
+                "enableBgp": false,
+                "usePolicyBasedTrafficSelectors": false,
+				"ipsecPolicies": [],
+				"sharedKey": "[parameters('sharedKey')]"
+            },
+            "dependsOn": [
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestEuropeName'))]",
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayNorthEuropeName'))]"
+			]
+		},
+		{
+            "type": "Microsoft.Network/connections",
+            "name": "Connection-NEU-WUS",
+            "apiVersion": "2017-10-01",
+            "location": "northeurope",
+            "scale": null,
+            "properties": {
+				"virtualNetworkGateway1": {
+					"id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayNorthEuropeName'))]"
+				  },
+                "virtualNetworkGateway2": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestUsName'))]"
+                },
+                "connectionType": "Vnet2Vnet",
+                "routingWeight": 0,
+                "enableBgp": false,
+                "usePolicyBasedTrafficSelectors": false,
+				"ipsecPolicies": [],
+				"sharedKey": "[parameters('sharedKey')]"
+            },
+            "dependsOn": [
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayNorthEuropeName'))]",
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestUsName'))]"
+			]
+		},
+		{
+            "type": "Microsoft.Network/connections",
+            "name": "Connection-WUS-NEU",
+            "apiVersion": "2017-10-01",
+            "location": "westus",
+            "scale": null,
+            "properties": {
+				"virtualNetworkGateway1": {
+					"id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestUsName'))]"
+				  },
+                "virtualNetworkGateway2": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayNorthEuropeName'))]"
+                },
+                "connectionType": "Vnet2Vnet",
+                "routingWeight": 0,
+                "enableBgp": false,
+                "usePolicyBasedTrafficSelectors": false,
+				"ipsecPolicies": [],
+				"sharedKey": "[parameters('sharedKey')]"
+            },
+            "dependsOn": [
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestUsName'))]",
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayNorthEuropeName'))]"
+			]
+		},
+		{
+            "type": "Microsoft.Network/connections",
+            "name": "Connection-WUS-EUS",
+            "apiVersion": "2017-10-01",
+            "location": "westus",
+            "scale": null,
+            "properties": {
+				"virtualNetworkGateway1": {
+					"id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestUsName'))]"
+				  },
+                "virtualNetworkGateway2": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayEastUsName'))]"
+                },
+                "connectionType": "Vnet2Vnet",
+                "routingWeight": 0,
+                "enableBgp": false,
+                "usePolicyBasedTrafficSelectors": false,
+				"ipsecPolicies": [],
+				"sharedKey": "[parameters('sharedKey')]"
+            },
+            "dependsOn": [
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestUsName'))]",
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayEastUsName'))]"
+			]
+		},
+		{
+            "type": "Microsoft.Network/connections",
+            "name": "Connection-EUS-WUS",
+            "apiVersion": "2017-10-01",
+            "location": "eastus",
+            "scale": null,
+            "properties": {
+				"virtualNetworkGateway1": {
+					"id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayEastUsName'))]"
+				  },
+                "virtualNetworkGateway2": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestUsName'))]"
+                },
+                "connectionType": "Vnet2Vnet",
+                "routingWeight": 0,
+                "enableBgp": false,
+                "usePolicyBasedTrafficSelectors": false,
+				"ipsecPolicies": [],
+				"sharedKey": "[parameters('sharedKey')]"
+            },
+            "dependsOn": [
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayEastUsName'))]",
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestUsName'))]"
+			]
+		},
+		{
+            "type": "Microsoft.Network/connections",
+            "name": "Connection-EUS-WEU",
+            "apiVersion": "2017-10-01",
+            "location": "eastus",
+            "scale": null,
+            "properties": {
+				"virtualNetworkGateway1": {
+					"id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayEastUsName'))]"
+				  },
+                "virtualNetworkGateway2": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestEuropeName'))]"
+                },
+                "connectionType": "Vnet2Vnet",
+                "routingWeight": 0,
+                "enableBgp": false,
+                "usePolicyBasedTrafficSelectors": false,
+				"ipsecPolicies": [],
+				"sharedKey": "[parameters('sharedKey')]"
+            },
+            "dependsOn": [
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayEastUsName'))]",
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestEuropeName'))]"
+			]
+		},
+		{
+            "type": "Microsoft.Network/connections",
+            "name": "Connection-WEU-EUS",
+            "apiVersion": "2017-10-01",
+            "location": "westeurope",
+            "scale": null,
+            "properties": {
+				"virtualNetworkGateway1": {
+					"id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestEuropeName'))]"
+				  },
+                "virtualNetworkGateway2": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayEastUsName'))]"
+                },
+                "connectionType": "Vnet2Vnet",
+                "routingWeight": 0,
+                "enableBgp": false,
+                "usePolicyBasedTrafficSelectors": false,
+				"ipsecPolicies": [],
+				"sharedKey": "[parameters('sharedKey')]"
+            },
+            "dependsOn": [
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayWestEuropeName'))]",
+				"[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('VpnGatewayEastUsName'))]"
+			]
+        }									
+    ]
+}
