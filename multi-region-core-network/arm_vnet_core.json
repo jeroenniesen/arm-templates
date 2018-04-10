@@ -120,7 +120,7 @@
                 },
                 "gatewayType": "Vpn",
                 "vpnType": "RouteBased",
-                "enableBgp": false,
+                "enableBgp": true,
                 "activeActive": false,
                 "vpnClientConfiguration": {
                     "vpnClientProtocols": [
@@ -129,7 +129,12 @@
                     ],
                     "vpnClientRootCertificates": [],
                     "vpnClientRevokedCertificates": []
-                }
+                },
+                "bgpSettings": {
+                        "asn": 65515,
+                        "bgpPeeringAddress": "10.1.0.14",
+                        "peerWeight": 0
+                    }
             },
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/', parameters('VnetHubWestUsName'))]",
@@ -164,7 +169,7 @@
                 },
                 "gatewayType": "Vpn",
                 "vpnType": "RouteBased",
-                "enableBgp": false,
+                "enableBgp": true,
                 "activeActive": false,
                 "vpnClientConfiguration": {
                     "vpnClientProtocols": [
@@ -173,7 +178,12 @@
                     ],
                     "vpnClientRootCertificates": [],
                     "vpnClientRevokedCertificates": []
-                }
+                },
+                "bgpSettings": {
+                        "asn": 65514,
+                        "bgpPeeringAddress": "10.1.0.14",
+                        "peerWeight": 0
+                    }
             },
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/', parameters('VnetHubEastUsName'))]",
@@ -208,7 +218,7 @@
                 },
                 "gatewayType": "Vpn",
                 "vpnType": "RouteBased",
-                "enableBgp": false,
+                "enableBgp": true,
                 "activeActive": false,
                 "vpnClientConfiguration": {
                     "vpnClientProtocols": [
@@ -219,10 +229,10 @@
                     "vpnClientRevokedCertificates": []
                 },
                 "bgpSettings": {
-                    "asn": 65515,
-                    "bgpPeeringAddress": "10.2.0.14",
-                    "peerWeight": 0
-                }
+                        "asn": 65513,
+                        "bgpPeeringAddress": "10.2.0.14",
+                        "peerWeight": 0
+                    }
             },
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/', parameters('VnetHubNorthEuropeName'))]",
@@ -268,10 +278,10 @@
                     "vpnClientRevokedCertificates": []
                 },
                 "bgpSettings": {
-                    "asn": 65515,
-                    "bgpPeeringAddress": "10.1.0.14",
-                    "peerWeight": 0
-                }
+                        "asn": 65512,
+                        "bgpPeeringAddress": "10.1.0.14",
+                        "peerWeight": 0
+                    }
             },
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/', parameters('VnetHubWesthEuropeName'))]",
